@@ -39,7 +39,7 @@ getgenv().SettingsTable = {
     BeetleLarvaeFarm = {Enabled = false, TargetLocked = false},
     PlayerFarm = {Enabled = true, TargetLocked = false, IgnoreCarp = false, IgnoreFire = false, IgnoreYCA = false, IgnoreSpider = false, IgnoreQueens = true, IgnoreLarvaes = false},
     KillAura = false,
-    LeaveOnModJoin = false,
+    LeaveOnModJoin = true,
     CarpenterAntESP = false,
     FireAntESP = false,
     YCAntESP = false,
@@ -734,7 +734,7 @@ FarmTab_BLarvae:CreateToggle('Beetle Larvae Farm', false, function(val)
                     while ClosestBLarvae ~= nil and SettingsTable.BeetleLarvaeFarm.Enabled == true and RootCheck() == true and ClosestBLarvae:FindFirstChild('Humanoid') and ClosestBLarvae:FindFirstChild('HumanoidRootPart') and ClosestBLarvae.HumanoidRootPart.Position.Y > -100 do
                         LP.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
                         LP.Character.HumanoidRootPart.CFrame = CFrame.lookAt(LP.Character.HumanoidRootPart.Position, ClosestBLarvae.HumanoidRootPart.Position - Vector3.new(0, 20, 0))
-                        LP.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -1.7)
+                        LP.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -2.0)
                         BiteRemote:FireServer('heavy', ClosestBLarvae.Humanoid)
                         game:GetService('RunService').Heartbeat:Wait()
                     end
