@@ -1,0 +1,929 @@
+--[[
+    AntHaxx V6 Official
+    
+    Game: Ant Life V2 (https://www.roblox.com/games/2628115891)
+    AntHaxx Loader: loadstring(game:HttpGet('https://pastebin.com/raw/9MWb13Yz'))()
+    Discord: https://discord.gg/ancT7xZ9Ty
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+if game.GameId == 943242049 then else return end
+
+local porno = {
+    WindowName = 'AntHaxx V6 | Ant Life V2',
+	Color = Color3.fromRGB(255, 0, 0),
+	Keybind = Enum.KeyCode.One
+}
+
+local sex = loadstring(game:HttpGet('https://raw.githubusercontent.com/AlexR32/Bracket/main/BracketV3.lua'))()
+local Window = sex:CreateWindow(porno, game:GetService('CoreGui'))
+    
+--// VARS
+local LP = game:GetService('Players').LocalPlayer
+local Mouse = LP:GetMouse()
+local BiteRemote = game:GetService('ReplicatedStorage').Remotes['Biterzzzzzz']
+
+getgenv().SettingsTable = {
+    InfTrophReach = false,
+    AutoEatTroph = false,
+    AutoRegainHungerThirst = false,
+    FastDrink = false,
+    WaterNoclip = false,
+    Noclip = false,
+    CClickTP = false,
+    HoldFDig = false,
+    InfJump = false,
+    FreeCam = {Enabled = false, FreeCamSpeed = 2},
+    Fly = {Enabled = false, FlySpeed = 1},
+    InfCameraZoom = false,
+    BeetleLarvaeFarm = {Enabled = false, TargetLocked = false},
+    PlayerFarm = {Enabled = true, TargetLocked = false, IgnoreCarp = false, IgnoreFire = false, IgnoreYCA = false, IgnoreSpider = false, IgnoreQueens = true, IgnoreLarvaes = false},
+    KillAura = false,
+    LeaveOnModJoin = false,
+    CarpenterAntESP = false,
+    FireAntESP = false,
+    YCAntESP = false,
+    SpiderESP = false,
+    RemoveAntCorpses = false
+}
+
+--// FUNCTIONS & STUFF
+local Old
+Old = hookmetamethod(game, '__namecall', function(...)
+	local Method = getnamecallmethod()
+    
+	-- Bypassing Kicks
+	if Method == 'Kick' then 
+		return
+	end
+    
+	return Old(...)
+end)
+
+local function HumCheck()
+	if LP.Character ~= nil and LP.Character:FindFirstChild('Humanoid') and LP.Character.Humanoid.Health ~= 0 then
+		return true
+    else
+        return false
+	end
+end
+
+local function RootCheck()
+	if LP.Character ~= nil and LP.Character:FindFirstChild('HumanoidRootPart') then
+		return true
+    else
+        return false
+	end
+end
+
+local function CreateESP(model, color)
+    if not model.Torso:FindFirstChild('ESP') then
+        for i, v in pairs(model:GetDescendants()) do
+            if v:IsA('BasePart') and v.Transparency == 0 and not v:FindFirstChild('ESP') then
+                local ESP = Instance.new('BoxHandleAdornment')
+                ESP.Name = 'ESP'
+			    ESP.AlwaysOnTop = true
+			    ESP.ZIndex = 0
+			    ESP.Size = v.Size
+			    ESP.Transparency = 0.5
+			    ESP.Color3 = color
+                ESP.Parent = v
+			    ESP.Adornee = v
+            end
+        end
+    end
+end
+
+local function RemoveESP(model)
+    if model.Torso:FindFirstChild('ESP') then
+        for i, v in pairs(model:GetDescendants()) do
+            if v:IsA('BoxHandleAdornment') and v.Name == 'ESP' then
+                v:Destroy()
+            end
+        end
+    end
+end
+
+local AutofarmAntiFallPart = Instance.new('Part')
+AutofarmAntiFallPart.Anchored = true
+AutofarmAntiFallPart.Size = Vector3.new(100, 1, 100)
+AutofarmAntiFallPart.CFrame = CFrame.new(0, -100, 0)
+AutofarmAntiFallPart.Parent = workspace
+
+LP.Idled:Connect(function()
+
+	-- Anti AFK
+	game:GetService('VirtualUser'):CaptureController()
+	game:GetService('VirtualUser'):ClickButton2(Vector2.new())
+
+end)
+
+LP.PlayerGui.Chat.Frame.ChatChannelParentFrame.Frame_MessageLogDisplay.Scroller.ChildAdded:Connect(function(child)
+    if child:IsA('Frame') then
+        child:WaitForChild('TextLabel'):WaitForChild('TextButton')
+
+        local Sender = string.gsub(child.TextLabel.TextButton.Text,'[%^%$%(%)%%%.%[%]%*%+%-%?% :]', '')
+        local SenderPlayer = nil
+        for i, v in pairs(game:GetService('Players'):GetPlayers()) do
+            if v.DisplayName == Sender then
+                SenderPlayer = v
+            end
+        end
+        
+        child.TextLabel.TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        if SenderPlayer.Character then
+            if SenderPlayer.Character:IsDescendantOf(workspace.Ant['Carpenter Ant']) then
+                child.TextLabel.TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+            elseif SenderPlayer.Character:IsDescendantOf(workspace.Ant['Fire Ant']) then
+                child.TextLabel.TextButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+            elseif SenderPlayer.Character:IsDescendantOf(workspace.Ant['Yellow Crazy Ant']) then
+                child.TextLabel.TextButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+            elseif (SenderPlayer.Character:IsDescendantOf(workspace.Special.Spider) or SenderPlayer.Character:IsDescendantOf(workspace.Special.Spiderling)) then
+                child.TextLabel.TextButton.TextColor3 = Color3.fromRGB(57, 57, 57)
+            elseif SenderPlayer.Character:IsDescendantOf(workspace.Special.BroodMother) then
+                child.TextLabel.TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+            end
+        end
+    end
+end)
+
+Mouse.Button1Down:Connect(function()
+
+    -- C + Click TP
+    if SettingsTable.CClickTP == true and game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.C) and RootCheck() == true then
+        LP.Character:MoveTo(Mouse.Hit.p)
+    end
+
+    -- Anti Food Glitch
+    if RootCheck() == true and LP.Character:FindFirstChild('Carrier') then
+        task.wait(0.1)
+        for i, v in pairs(LP.Character.Carrier:GetChildren()) do
+            if v:IsA('Weld') and v.Name == 'Carry' then
+                v:Destroy()
+            end
+        end
+    end
+
+end)
+
+game:GetService('UserInputService').InputBegan:Connect(function(key, gameProcessed)
+    if gameProcessed == true then return end
+
+    -- Infinite Jump
+    if key.KeyCode == Enum.KeyCode.Space and SettingsTable.InfJump == true and HumCheck() == true then
+        LP.Character.Humanoid:ChangeState('Seated')
+		task.wait()
+		LP.Character.Humanoid:ChangeState('Jumping')
+    end
+
+    -- FreeCam1
+    if SettingsTable.FreeCam.Enabled == true then
+        if key.KeyCode == Enum.KeyCode.W then
+            while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.W) and SettingsTable.FreeCam.Enabled == true do
+                workspace:WaitForChild('FreeCamPos').CFrame = CFrame.new(workspace:WaitForChild('FreeCamPos').CFrame.Position, workspace:WaitForChild('FreeCamPos').CFrame.Position + Vector3.new(workspace.CurrentCamera.CFrame.LookVector.X, workspace.CurrentCamera.CFrame.LookVector.Y, workspace.CurrentCamera.CFrame.LookVector.Z))
+                workspace:WaitForChild('FreeCamPos').CFrame = workspace:WaitForChild('FreeCamPos').CFrame * CFrame.new(0, 0, -SettingsTable.FreeCam.FreeCamSpeed)
+                workspace.CurrentCamera.CFrame = workspace:WaitForChild('FreeCamPos').CFrame
+                task.wait()
+            end
+        end
+
+        if key.KeyCode == Enum.KeyCode.S then
+            while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.S) and SettingsTable.FreeCam.Enabled == true do
+                workspace:WaitForChild('FreeCamPos').CFrame = CFrame.new(workspace:WaitForChild('FreeCamPos').CFrame.Position, workspace:WaitForChild('FreeCamPos').CFrame.Position + Vector3.new(workspace.CurrentCamera.CFrame.LookVector.X, workspace.CurrentCamera.CFrame.LookVector.Y, workspace.CurrentCamera.CFrame.LookVector.Z))
+                workspace:WaitForChild('FreeCamPos').CFrame = workspace:WaitForChild('FreeCamPos').CFrame * CFrame.new(0, 0, SettingsTable.FreeCam.FreeCamSpeed)
+                workspace.CurrentCamera.CFrame = workspace:WaitForChild('FreeCamPos').CFrame
+                task.wait()
+            end
+        end
+
+        if key.KeyCode == Enum.KeyCode.A then
+            while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.A) and SettingsTable.FreeCam.Enabled == true do
+                workspace:WaitForChild('FreeCamPos').CFrame = CFrame.new(workspace:WaitForChild('FreeCamPos').CFrame.Position, workspace:WaitForChild('FreeCamPos').CFrame.Position + Vector3.new(workspace.CurrentCamera.CFrame.LookVector.X, workspace.CurrentCamera.CFrame.LookVector.Y, workspace.CurrentCamera.CFrame.LookVector.Z))
+                workspace:WaitForChild('FreeCamPos').CFrame = workspace:WaitForChild('FreeCamPos').CFrame * CFrame.new(-SettingsTable.FreeCam.FreeCamSpeed, 0, 0)
+                workspace.CurrentCamera.CFrame = workspace:WaitForChild('FreeCamPos').CFrame
+                task.wait()
+            end
+        end
+
+        if key.KeyCode == Enum.KeyCode.D then
+            while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.D) and SettingsTable.FreeCam.Enabled == true do
+                workspace:WaitForChild('FreeCamPos').CFrame = CFrame.new(workspace:WaitForChild('FreeCamPos').CFrame.Position, workspace:WaitForChild('FreeCamPos').CFrame.Position + Vector3.new(workspace.CurrentCamera.CFrame.LookVector.X, workspace.CurrentCamera.CFrame.LookVector.Y, workspace.CurrentCamera.CFrame.LookVector.Z))
+                workspace:WaitForChild('FreeCamPos').CFrame = workspace:WaitForChild('FreeCamPos').CFrame * CFrame.new(SettingsTable.FreeCam.FreeCamSpeed, 0, 0)
+                workspace.CurrentCamera.CFrame = workspace:WaitForChild('FreeCamPos').CFrame
+                task.wait()
+            end
+        end
+    end
+
+    -- Fly1
+    if SettingsTable.Fly.Enabled == true and SettingsTable.Fly.Enabled == true and SettingsTable.PlayerFarm.Enabled == false and SettingsTable.BeetleLarvaeFarm.Enabled == false and RootCheck() == true and HumCheck() == true then
+        if key.KeyCode == Enum.KeyCode.W then
+            while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.W) and SettingsTable.Fly.Enabled == true and SettingsTable.PlayerFarm.Enabled == false and SettingsTable.BeetleLarvaeFarm.Enabled == false do
+                LP.Character:SetPrimaryPartCFrame(LP.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -SettingsTable.Fly.FlySpeed))
+                task.wait()
+            end
+        end
+
+        if key.KeyCode == Enum.KeyCode.S then
+            while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.S) and SettingsTable.Fly.Enabled == true and SettingsTable.PlayerFarm.Enabled == false and SettingsTable.BeetleLarvaeFarm.Enabled == false do
+                LP.Character:SetPrimaryPartCFrame(LP.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, SettingsTable.Fly.FlySpeed))
+                task.wait()
+            end
+        end
+
+        if key.KeyCode == Enum.KeyCode.A then
+            while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.A) and SettingsTable.Fly.Enabled == true and SettingsTable.PlayerFarm.Enabled == false and SettingsTable.BeetleLarvaeFarm.Enabled == false do
+                LP.Character:SetPrimaryPartCFrame(LP.Character.HumanoidRootPart.CFrame * CFrame.new(-SettingsTable.Fly.FlySpeed, 0, 0))
+                task.wait()
+            end
+        end
+
+        if key.KeyCode == Enum.KeyCode.D then
+            while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.D) and SettingsTable.Fly.Enabled == true and SettingsTable.PlayerFarm.Enabled == false and SettingsTable.BeetleLarvaeFarm.Enabled == false do
+                LP.Character:SetPrimaryPartCFrame(LP.Character.HumanoidRootPart.CFrame * CFrame.new(SettingsTable.Fly.FlySpeed, 0, 0))
+                task.wait()
+            end
+        end
+    end
+
+    -- Hold F To Dig
+    if key.KeyCode == Enum.KeyCode.F and SettingsTable.HoldFDig == true then
+        while game:GetService('UserInputService'):IsKeyDown(Enum.KeyCode.F) do
+            game:GetService('ReplicatedStorage').Remotes.Dig:FireServer(Mouse.Hit.p, 'Flatten')
+            task.wait()
+        end
+    end
+end)
+
+game:GetService('RunService').RenderStepped:Connect(function()
+
+    -- Anti Camera Glitch
+    if HumCheck() == true and SettingsTable.FreeCam.Enabled == false then
+        workspace.CurrentCamera.CameraSubject = LP.Character.Humanoid
+    end
+
+    -- Infinite Troph Reach
+    if SettingsTable.InfTrophReach == true and HumCheck() == true and LP.Character:FindFirstChild('Reward') then
+        for i, v in pairs(LP.Character.Parent.Parent:GetDescendants()) do
+            if v.Name == 'Carrier' and v:FindFirstChildOfClass('ProximityPrompt') then
+                v:FindFirstChildOfClass('ProximityPrompt').MaxActivationDistance = 999
+            end
+        end
+    end
+
+    -- Auto Eat Trophs
+    if SettingsTable.AutoEatTroph == true and HumCheck() == true and LP.Character:FindFirstChild('Reward') then
+        for i, v in pairs(LP.Character.Parent.Parent:GetDescendants()) do
+            if v.Name == 'Carrier' and v:FindFirstChildOfClass('ProximityPrompt') then
+                v:FindFirstChildOfClass('ProximityPrompt').HoldDuration = 0
+                fireproximityprompt(v:FindFirstChildOfClass('ProximityPrompt'))
+            end
+        end
+    end
+
+    -- Fast Drink
+    if SettingsTable.FastDrink == true and HumCheck() == true then
+        if LP.Character:FindFirstChild('Configuration') and LP.Character.Configuration:WaitForChild('Thirst').Value ~= LP.Character.Configuration:WaitForChild('maxThirst').Value then
+           BiteRemote:FireServer('light', 'Water') -- ik raycasts exist but that would just be even more laggy 
+        end
+    end
+
+    -- Water Noclip
+    if SettingsTable.WaterNoclip == true and HumCheck() == true then
+        LP.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
+    elseif SettingsTable.WaterNoclip == false and HumCheck() == true then
+        LP.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true)
+    end
+
+    -- Noclip
+    if (SettingsTable.Noclip == true or SettingsTable.PlayerFarm.Enabled == true or SettingsTable.BeetleLarvaeFarm.Enabled == true) and HumCheck() == true then
+        for i, v in pairs(LP.Character:GetDescendants()) do
+            if v:IsA('BasePart') then
+                v.CanCollide = false
+            end
+        end
+    end
+
+    -- FreeCam2
+    if SettingsTable.FreeCam.Enabled == true then
+        if not workspace:FindFirstChild('FreeCamPos') then
+            local FreeCamPos = Instance.new('Part')
+            FreeCamPos.Name = 'FreeCamPos'
+            FreeCamPos.Anchored = true
+            FreeCamPos.Size = Vector3.new(1, 1, 1)
+            FreeCamPos.Transparency = 1
+            FreeCamPos.CanCollide = false
+            FreeCamPos.CFrame = workspace.CurrentCamera.CFrame
+            FreeCamPos.Parent = workspace
+
+            require(LP.PlayerScripts:WaitForChild('PlayerModule')):GetControls():Disable()
+            LP.CameraMaxZoomDistance = 1
+            workspace.CurrentCamera.CameraSubject = FreeCamPos
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+        end
+    else
+        if workspace:FindFirstChild('FreeCamPos') then
+            workspace.FreeCamPos:Destroy()
+            require(LP.PlayerScripts:WaitForChild('PlayerModule')):GetControls():Enable()
+            LP.CameraMaxZoomDistance = 30
+            if HumCheck() == true then workspace.CurrentCamera.CameraSubject = LP.Character.Humanoid end
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+            LP.CameraMode = Enum.CameraMode.Classic
+        end
+    end
+
+    -- Fly2
+    if SettingsTable.Fly.Enabled == true and SettingsTable.PlayerFarm.Enabled == false and SettingsTable.BeetleLarvaeFarm.Enabled == false and RootCheck() == true and HumCheck() == true then
+        if not LP.Character.HumanoidRootPart:FindFirstChild('FlightVelocity') then
+            local FlightVelocity = Instance.new('BodyVelocity')
+            FlightVelocity.Name = 'FlightVelocity'
+            FlightVelocity.Velocity = Vector3.new(0, 0, 0)
+            FlightVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            FlightVelocity.Parent = LP.Character.HumanoidRootPart
+        end
+
+        LP.Character.Humanoid.PlatformStand = true
+        LP.Character:SetPrimaryPartCFrame(CFrame.new(LP.Character.HumanoidRootPart.CFrame.Position, LP.Character.HumanoidRootPart.CFrame.Position + Vector3.new(workspace.CurrentCamera.CFrame.LookVector.X, workspace.CurrentCamera.CFrame.LookVector.Y, workspace.CurrentCamera.CFrame.LookVector.Z)))
+    else
+        if RootCheck() == true and HumCheck() == true and LP.Character.HumanoidRootPart:FindFirstChild('FlightVelocity') then
+            LP.Character.HumanoidRootPart.FlightVelocity:Destroy()
+            LP.Character.Humanoid.PlatformStand = false
+        end
+    end
+
+    -- Infinite Camera Zoom
+    if SettingsTable.InfCameraZoom == true then
+        if SettingsTable.FreeCam.Enabled == false then LP.CameraMaxZoomDistance = math.huge end
+    else
+        if SettingsTable.FreeCam.Enabled == false then LP.CameraMaxZoomDistance = 30 end
+    end
+
+    for i, v in pairs(game:GetService('Players'):GetPlayers()) do
+
+        -- Leaving On Mod Join
+        if SettingsTable.LeaveOnModJoin == true then
+            pcall(function()
+                if v:GetRankInGroup(4525406) > 6 then
+                    LP:Destroy()
+                end
+            end)
+        end
+
+        -- KillAura
+        if SettingsTable.KillAura == true and RootCheck() == true and HumCheck() == true and SettingsTable.BeetleLarvaeFarm.Enabled == false and SettingsTable.PlayerFarm.Enabled == false then
+            if v.Character and v.Character:FindFirstChild('HumanoidRootPart') and v.Character:FindFirstChild('Humanoid') and (v.Character.HumanoidRootPart.Position - LP.Character.HumanoidRootPart.Position).Magnitude < 25 and v.Character:FindFirstAncestorWhichIsA('Folder') and v.Character:FindFirstAncestorWhichIsA('Folder') ~= LP.Character:FindFirstAncestorWhichIsA('Folder') then
+                BiteRemote:FireServer('heavy', v.Character.Humanoid)
+            end
+
+            for i, v in pairs(workspace.AIC:GetChildren()) do
+                if v:FindFirstChild('HumanoidRootPart') and v:FindFirstChild('Humanoid') and (v.HumanoidRootPart.Position - LP.Character.HumanoidRootPart.Position).Magnitude < 25 then
+                    BiteRemote:FireServer('heavy', v.Humanoid)
+                end
+            end
+        end
+
+        -- ESP
+        if v.Character and v.Character:FindFirstChild('Torso') then
+            if v.Character:IsDescendantOf(workspace.Ant['Carpenter Ant']) and v.Character ~= LP.Character then
+                if SettingsTable.CarpenterAntESP == true then
+                    CreateESP(v.Character, Color3.fromRGB(0, 0, 0))  
+                else
+                    RemoveESP(v.Character)
+                end
+            end
+
+            if v.Character:IsDescendantOf(workspace.Ant['Fire Ant']) and v.Character ~= LP.Character then
+                if SettingsTable.FireAntESP == true then
+                    CreateESP(v.Character, Color3.fromRGB(255, 0, 0))  
+                else
+                    RemoveESP(v.Character)
+                end
+            end
+
+            if v.Character:IsDescendantOf(workspace.Ant['Yellow Crazy Ant']) and v.Character ~= LP.Character then
+                if SettingsTable.YCAntESP == true then
+                    CreateESP(v.Character, Color3.fromRGB(255, 255, 0))  
+                else
+                    RemoveESP(v.Character)
+                end
+            end
+
+            if v.Character:IsDescendantOf(workspace.Special) and v.Character ~= LP.Character then
+                if SettingsTable.SpiderESP == true then
+                    if v.Character:IsDescendantOf(workspace.Special.Spider) or v.Character:IsDescendantOf(workspace.Special.Spiderling) then
+                        CreateESP(v.Character, Color3.fromRGB(57, 57, 57))
+                    elseif v.Character:IsDescendantOf(workspace.Special.BroodMother) then
+                        CreateESP(v.Character, Color3.fromRGB(0, 0, 0))
+                    end
+                else
+                    RemoveESP(v.Character)
+                end
+            end
+        end
+        
+    end
+
+    -- Removing Ant Corpses
+    if SettingsTable.RemoveAntCorpses == true then
+        for i, v in pairs(workspace.Carcasses:GetChildren()) do
+            if v and v.Name == 'Food' and v:FindFirstChild('Abdomen') then
+                v:Destroy()
+            end
+        end
+    end
+
+end)
+
+--// TABS
+local HomeTab = Window:CreateTab('Home')
+local PlayerTab = Window:CreateTab('Player Cheats')
+local ColonyTab = Window:CreateTab('Colonies')
+local FarmTab = Window:CreateTab('Farming')
+local CombatTab = Window:CreateTab('Combat')
+local VisualTab = Window:CreateTab('Visuals')
+local SettingsTab = Window:CreateTab('Settings')
+
+--// SECTIONS
+local HomeTab_Info = HomeTab:CreateSection('AntHaxx Info')
+local HomeTab_LoadedScripts = HomeTab:CreateSection('Loaded Scripts')
+
+local PlayerTab_Ant = PlayerTab:CreateSection('Ant Mods')
+local PlayerTab_Larvae = PlayerTab:CreateSection('Larvae Mods')
+
+local ColonyTab_CarpAnts = ColonyTab:CreateSection('Carpenter Ants')
+local ColonyTab_FireAnts = ColonyTab:CreateSection('Fire Ants')
+local ColonyTab_YCAnts = ColonyTab:CreateSection('Yellow Crazy Ants')
+local ColonyTab_Spiders = ColonyTab:CreateSection('Spiders')
+
+local FarmTab_BLarvae = FarmTab:CreateSection('Beetle Larvae Farm')
+local FarmTab_PlayerFarm = FarmTab:CreateSection('Player Farm')
+
+local CombatTab_Cheats = CombatTab:CreateSection('Cheats')
+
+local VisualTab_ESP = VisualTab:CreateSection('ESP')
+local VisualTab_ClientMods = VisualTab:CreateSection('ClientSided Mods')
+
+local SettingsTab_UI = SettingsTab:CreateSection('UI Settings')
+local SettingsTab_Other = SettingsTab:CreateSection('Other Settings')
+
+--// HOME TAB
+HomeTab_Info:CreateLabel('Game\nAnt Life V2\n')
+HomeTab_Info:CreateLabel('Script Version\n6.4')
+HomeTab_Info:CreateLabel('⚠️ WARNING ⚠️\nDon\'t set some values that make you\ngo fast too high, or you may be\nkicked for teleporting')
+
+HomeTab_LoadedScripts:CreateLabel('Anti AFK')
+HomeTab_LoadedScripts:CreateLabel('Anti Camera Glitch')
+HomeTab_LoadedScripts:CreateLabel('Anti Food Grabbing Glitch')
+
+--// PLAYER TAB
+PlayerTab_Ant:CreateTextBox('Heavy Bite Charge Time', 'Type \'re\' to reset to default', false, function(val)
+    if HumCheck() == true and LP.Character:FindFirstChild('Configuration') then
+        if val == 're' then
+            if LP.Character.Parent.Parent.Name == 'Carpenter Ant' then
+                LP.Character.Configuration.attackCooldown.Value = 2
+            else
+                LP.Character.Configuration.attackCooldown.Value = 1
+            end
+        else
+            if tonumber(val) then
+                LP.Character.Configuration.attackCooldown.Value = val
+            end
+        end
+    end
+end)
+
+PlayerTab_Ant:CreateTextBox('WalkSpeed', 'Type \'re\' to reset to default', false, function(val)
+    if HumCheck() == true and LP.Character:FindFirstChild('Configuration') then
+        if val == 're' then
+            LP.Character.Humanoid.WalkSpeed = LP.Character.Configuration.sprintSpeed.Value
+        else
+            if tonumber(val) then
+                LP.Character.Humanoid.WalkSpeed = val
+            end
+        end
+    end
+end)
+
+PlayerTab_Ant:CreateTextBox('JumpPower', 'Number Value' , true, function(val)
+    if not tonumber(val) then return end
+
+	if HumCheck() == true then
+        LP.Character.Humanoid.JumpPower = val
+    end
+end)
+
+local AutoRegainHungerThirst = PlayerTab_Ant:CreateToggle('[⚠️] Auto Regain Hunger & Thirst', false, function(val)
+	SettingsTable.AutoRegainHungerThirst = val
+
+    if val == true then
+        while SettingsTable.AutoRegainHungerThirst == true do
+            task.wait()
+            if HumCheck() == true and not LP.Character:IsDescendantOf(workspace.Special.BroodMother) and LP.Character:FindFirstChild('Configuration') and LP.Character.Configuration:WaitForChild('Hunger').Value ~= LP.Character.Configuration:WaitForChild('maxHunger').Value then
+                for i, v in pairs(workspace.Carcasses:GetDescendants()) do
+                    if v.Parent ~= nil and v.Parent.Name == 'Larvae' and (v.Name == 'Head' or v.Name == 'Torso') then
+                        if LP.Character:FindFirstChild('Carrier') and LP.Character.Carrier.Transparency == 0 then continue end
+                        firetouchinterest(LP.Character.HumanoidRootPart, v, 0)
+                        BiteRemote:FireServer('light', v)
+                        firetouchinterest(LP.Character.HumanoidRootPart, v, 1)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+AutoRegainHungerThirst:AddToolTip('[⚠️] This relies on beetle larvae carcasses, so this might not always work')
+
+PlayerTab_Ant:CreateToggle('Fast Drink', false, function(val)
+	SettingsTable.FastDrink = val
+end)
+
+PlayerTab_Ant:CreateToggle('Water Noclip', false, function(val)
+	SettingsTable.WaterNoclip = val
+end)
+
+PlayerTab_Ant:CreateToggle('Noclip', false, function(val)
+	SettingsTable.Noclip = val
+end)
+
+-- PlayerTab_Ant:CreateToggle('C + Click TP', false, function(val)
+-- 	SettingsTable.CClickTP = val
+-- end)
+
+PlayerTab_Ant:CreateToggle('Infinite Jump', false, function(val)
+	SettingsTable.InfJump = val
+end)
+
+PlayerTab_Ant:CreateToggle('Infinite Camera Zoom Distance', false, function(val)
+    SettingsTable.InfCameraZoom = val
+end)
+
+PlayerTab_Ant:CreateToggle('Hold F To Dig', false, function(val)
+    SettingsTable.HoldFDig = val
+end)
+
+local FreeCamBind = PlayerTab_Ant:CreateToggle('FreeCam', false, function(val)
+	SettingsTable.FreeCam.Enabled = val
+end)
+
+FreeCamBind:CreateKeybind(tostring('Z'):gsub('Enum.KeyCode.', ''), function(key) end)
+
+PlayerTab_Ant:CreateTextBox('FreeCam Speed', 'Type \'re\' to reset to default', false, function(val)
+    if val == 're' then
+        SettingsTable.FreeCam.FreeCamSpeed = 2
+    else
+        if tonumber(val) then
+            SettingsTable.FreeCam.FreeCamSpeed = val
+        end
+    end
+end)
+
+local FlyBind
+FlyBind = PlayerTab_Ant:CreateToggle('Fly', false, function(val)
+	SettingsTable.Fly.Enabled = val
+end)
+
+FlyBind:CreateKeybind(tostring('V'):gsub('Enum.KeyCode.', ''), function(key) end)
+
+PlayerTab_Ant:CreateTextBox('Fly Speed', 'Type \'re\' to reset to default', false, function(val)
+    if val == 're' then
+        SettingsTable.Fly.FlySpeed = 1
+    else
+        if tonumber(val) then
+            SettingsTable.Fly.FlySpeed = val
+        end
+    end
+end)
+
+PlayerTab_Larvae:CreateToggle('Infinite Troph Reach', false, function(val)
+	SettingsTable.InfTrophReach = val
+end)
+
+PlayerTab_Larvae:CreateToggle('Auto Eat Troph', false, function(val)
+	SettingsTable.AutoEatTroph = val
+end)
+
+--// COLONY TAB
+local CarpQueenAmount = ColonyTab_CarpAnts:CreateLabel('Queens: ?')
+local CarpAlateAmount = ColonyTab_CarpAnts:CreateLabel('Alates: ?')
+local CarpSMAmount = ColonyTab_CarpAnts:CreateLabel('Super Majors: ?')
+local CarpMajorAmount = ColonyTab_CarpAnts:CreateLabel('Majors: ?')
+local CarpWorkerAmount = ColonyTab_CarpAnts:CreateLabel('Workers: ?')
+local CarpLarvaeAmount = ColonyTab_CarpAnts:CreateLabel('Larvae: ?')
+local CarpEggAmount = ColonyTab_CarpAnts:CreateLabel('Eggs: ?')
+
+-- local GotoCarpQueen1
+-- GotoCarpQueen1 = ColonyTab_CarpAnts:CreateButton('Goto Queen 1', function()
+--     if #workspace.Ant['Carpenter Ant'].Queen:GetChildren() ~= 0 and RootCheck() == true and HumCheck() == true then
+--         LP.Character.HumanoidRootPart.CFrame = workspace.Ant['Carpenter Ant'].Queen:GetChildren()[1].HumanoidRootPart.CFrame
+--     elseif #workspace.Ant['Carpenter Ant'].Queen:GetChildren() == 0 then
+--         GotoCarpQueen1:UpdateText('No Queen Found')
+--         task.wait(1)
+--         GotoCarpQueen1:UpdateText('Goto Queen 1')
+--     end
+-- end)
+
+-- local GotoCarpQueen2
+-- GotoCarpQueen2 = ColonyTab_CarpAnts:CreateButton('Goto Queen 2', function()
+-- 	if #workspace.Ant['Carpenter Ant'].Queen:GetChildren() == 2 and RootCheck() == true and HumCheck() == true then
+--         LP.Character.HumanoidRootPart.CFrame = workspace.Ant['Carpenter Ant'].Queen:GetChildren()[2].HumanoidRootPart.CFrame
+--     elseif #workspace.Ant['Carpenter Ant'].Queen:GetChildren() ~= 2 then
+--         GotoCarpQueen2:UpdateText('No Queen Found')
+--         task.wait(1)
+--         GotoCarpQueen2:UpdateText('Goto Queen 2')
+--     end
+-- end)
+
+local FireQueenAmount = ColonyTab_FireAnts:CreateLabel('Queens: ?')
+local FireAlateAmount = ColonyTab_FireAnts:CreateLabel('Alates: ?')
+local FireSoldierAmount = ColonyTab_FireAnts:CreateLabel('Soldiers: ?')
+local FireWorkerAmount = ColonyTab_FireAnts:CreateLabel('Workers: ?')
+local FireLarvaeAmount = ColonyTab_FireAnts:CreateLabel('Larvae: ?')
+local FireEggAmount = ColonyTab_FireAnts:CreateLabel('Eggs: ?')
+
+-- local GotoFireQueen1
+-- GotoFireQueen1 = ColonyTab_FireAnts:CreateButton('Goto Queen 1', function()
+--     if #workspace.Ant['Fire Ant'].Queen:GetChildren() ~= 0 and RootCheck() == true and HumCheck() == true then
+--         LP.Character.HumanoidRootPart.CFrame = workspace.Ant['Fire Ant'].Queen:GetChildren()[1].HumanoidRootPart.CFrame
+--     elseif #workspace.Ant['Fire Ant'].Queen:GetChildren() == 0 then
+--         GotoFireQueen1:UpdateText('No Queen Found')
+--         task.wait(1)
+--         GotoFireQueen1:UpdateText('Goto Queen 1')
+--     end
+-- end)
+
+-- local GotoFireQueen2
+-- GotoFireQueen2 = ColonyTab_FireAnts:CreateButton('Goto Queen 2', function()
+-- 	if #workspace.Ant['Fire Ant'].Queen:GetChildren() == 2 and RootCheck() == true and HumCheck() == true then
+--         LP.Character.HumanoidRootPart.CFrame = workspace.Ant['Fire Ant'].Queen:GetChildren()[2].HumanoidRootPart.CFrame
+--     elseif #workspace.Ant['Fire Ant'].Queen:GetChildren() ~= 2 then
+--         GotoFireQueen2:UpdateText('No Queen Found')
+--         task.wait(1)
+--         GotoFireQueen2:UpdateText('Goto Queen 2')
+--     end
+-- end)
+
+local YCQueenAmount = ColonyTab_YCAnts:CreateLabel('Queens: ?')
+local YCAlateAmount = ColonyTab_YCAnts:CreateLabel('Alates: ?')
+local YCSoldierAmount = ColonyTab_YCAnts:CreateLabel('Soldiers: ?')
+local YCWorkerAmount = ColonyTab_YCAnts:CreateLabel('Workers: ?')
+local YCLarvaeAmount = ColonyTab_YCAnts:CreateLabel('Larvae: ?')
+local YCEggAmount = ColonyTab_YCAnts:CreateLabel('Eggs: ?')
+
+-- local GotoYCQueen1
+-- GotoYCQueen1 = ColonyTab_YCAnts:CreateButton('Goto Queen 1', function()
+--     if #workspace.Ant['Yellow Crazy Ant'].Queen:GetChildren() ~= 0 and RootCheck() == true and HumCheck() == true then
+--         LP.Character.HumanoidRootPart.CFrame = workspace.Ant['Yellow Crazy Ant'].Queen:GetChildren()[1].HumanoidRootPart.CFrame
+--     elseif #workspace.Ant['Yellow Crazy Ant'].Queen:GetChildren() == 0 then
+--         GotoYCQueen1:UpdateText('No Queen Found')
+--         task.wait(1)
+--         GotoYCQueen1:UpdateText('Goto Queen 1')
+--     end
+-- end)
+
+-- local GotoYCQueen2
+-- GotoYCQueen2 = ColonyTab_YCAnts:CreateButton('Goto Queen 2', function()
+-- 	if #workspace.Ant['Yellow Crazy Ant'].Queen:GetChildren() == 2 and RootCheck() == true and HumCheck() == true then
+--         LP.Character.HumanoidRootPart.CFrame = workspace.Ant['Yellow Crazy Ant'].Queen:GetChildren()[2].HumanoidRootPart.CFrame
+--     elseif #workspace.Ant['Yellow Crazy Ant'].Queen:GetChildren() ~= 2 then
+--         GotoYCQueen2:UpdateText('No Queen Found')
+--         task.wait(1)
+--         GotoYCQueen2:UpdateText('Goto Queen 2')
+--     end
+-- end)
+
+local BroodMotherAmount = ColonyTab_Spiders:CreateLabel('BroodMothers: ?')
+local SpiderAmount = ColonyTab_Spiders:CreateLabel('Spiders: ?')
+local SpiderlingAmount = ColonyTab_Spiders:CreateLabel('Spiderlings: ?')
+
+--// FARM TAB
+FarmTab_BLarvae:CreateToggle('Beetle Larvae Farm', false, function(val)
+	SettingsTable.BeetleLarvaeFarm.Enabled = val
+
+    if SettingsTable.BeetleLarvaeFarm.Enabled == true then
+        while SettingsTable.BeetleLarvaeFarm.Enabled == true do
+            game:GetService('RunService').Heartbeat:Wait()
+
+            local ClosestBLarvae = nil
+            local ClosestBLarvaePos = math.huge
+
+            if RootCheck() == true and SettingsTable.PlayerFarm.TargetLocked == false then
+                for i, v in pairs(workspace.AIC:GetChildren()) do
+                    if v:FindFirstChild('HumanoidRootPart') and v:FindFirstChild('Humanoid') and v.HumanoidRootPart.Position.Y > -100 then
+                        SettingsTable.BeetleLarvaeFarm.TargetLocked = true
+
+                        local ClosestBLarvaeDist = (LP.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+    
+                        if ClosestBLarvaeDist < ClosestBLarvaePos then
+                            ClosestBLarvae = v
+                            ClosestBLarvaePos = ClosestBLarvaeDist
+                        end
+                    end
+                end
+
+                if ClosestBLarvae == nil then
+                    if SettingsTable.PlayerFarm.Enabled == false then
+                        LP.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+                        if LP.Character.HumanoidRootPart.Position.Y > -90 then
+                            LP.Character.HumanoidRootPart.CFrame = CFrame.new(LP.Character.HumanoidRootPart.Position) - Vector3.new(0, 1, 0)
+                        elseif LP.Character.HumanoidRootPart.Position.Y < -95 then
+                            LP.Character.HumanoidRootPart.CFrame = CFrame.new(LP.Character.HumanoidRootPart.Position) + Vector3.new(0, 1, 0)
+                        end
+                    end
+                else
+                    while ClosestBLarvae ~= nil and SettingsTable.BeetleLarvaeFarm.Enabled == true and RootCheck() == true and ClosestBLarvae:FindFirstChild('Humanoid') and ClosestBLarvae:FindFirstChild('HumanoidRootPart') and ClosestBLarvae.HumanoidRootPart.Position.Y > -100 do
+                        LP.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+                        LP.Character.HumanoidRootPart.CFrame = CFrame.lookAt(LP.Character.HumanoidRootPart.Position, ClosestBLarvae.HumanoidRootPart.Position - Vector3.new(0, 20, 0))
+                        LP.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -1.7)
+                        BiteRemote:FireServer('heavy', ClosestBLarvae.Humanoid)
+                        game:GetService('RunService').Heartbeat:Wait()
+                    end
+                end
+
+                SettingsTable.BeetleLarvaeFarm.TargetLocked = false
+            end
+        end
+    elseif SettingsTable.BeetleLarvaeFarm.Enabled == false then
+        task.wait()
+        SettingsTable.BeetleLarvaeFarm.TargetLocked = false
+    end
+end)
+
+FarmTab_PlayerFarm:CreateToggle('Player Farm', false, function(val)
+	SettingsTable.PlayerFarm.Enabled = val
+
+    if SettingsTable.PlayerFarm.Enabled == true then
+        while SettingsTable.PlayerFarm.Enabled == true do
+            game:GetService('RunService').Heartbeat:Wait()
+
+            local ClosestPlayer = nil
+            local ClosestPlayerPos = math.huge
+
+            if RootCheck() == true and SettingsTable.BeetleLarvaeFarm.TargetLocked == false then
+                for i, v in pairs(game:GetService('Players'):GetPlayers()) do
+                    if v.Character ~= nil and v.Character:FindFirstChild('HumanoidRootPart') and v.Character.HumanoidRootPart.Position.Y > -100 and v.Character:FindFirstAncestorWhichIsA('Folder') and v.Character:FindFirstAncestorWhichIsA('Folder') ~= LP.Character:FindFirstAncestorWhichIsA('Folder') then
+                        if SettingsTable.PlayerFarm.IgnoreCarp == true and v.Character:IsDescendantOf(workspace.Ant['Carpenter Ant']) then continue end
+                        if SettingsTable.PlayerFarm.IgnoreFire == true and v.Character:IsDescendantOf(workspace.Ant['Fire Ant']) then continue end
+                        if SettingsTable.PlayerFarm.IgnoreYCA == true and v.Character:IsDescendantOf(workspace.Ant['Yellow Crazy Ant']) then continue end
+                        if SettingsTable.PlayerFarm.IgnoreSpider == true and v.Character:IsDescendantOf(workspace['Special']) then continue end
+                        if SettingsTable.PlayerFarm.IgnoreQueens == true and v.Character.Parent.Name == 'Queen' then continue end
+                        if SettingsTable.PlayerFarm.IgnoreLarvaes == true and v.Character:FindFirstChild('Reward') then continue end
+                        SettingsTable.PlayerFarm.TargetLocked = true
+
+                        local ClosestPlayerDist = (LP.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+    
+                        if ClosestPlayerDist < ClosestPlayerPos then
+                            ClosestPlayer = v
+                            ClosestPlayerPos = ClosestPlayerDist
+                        end
+                    end
+                end
+                
+                if ClosestPlayer == nil then
+                    LP.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+                    if LP.Character.HumanoidRootPart.Position.Y > -90 then
+                        LP.Character.HumanoidRootPart.CFrame = CFrame.new(LP.Character.HumanoidRootPart.Position) - Vector3.new(0, 1, 0)
+                    elseif LP.Character.HumanoidRootPart.Position.Y < -95 then
+                        LP.Character.HumanoidRootPart.CFrame = CFrame.new(LP.Character.HumanoidRootPart.Position) + Vector3.new(0, 1, 0)
+                    end
+                else
+                    while ClosestPlayer ~= nil and SettingsTable.PlayerFarm.Enabled == true and RootCheck() == true and ClosestPlayer.Character ~= nil and ClosestPlayer.Character:FindFirstChild('Humanoid') and ClosestPlayer.Character:FindFirstChild('HumanoidRootPart') and ClosestPlayer.Character.HumanoidRootPart.Position.Y > -100 do
+                        LP.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+                        LP.Character.HumanoidRootPart.CFrame = CFrame.lookAt(LP.Character.HumanoidRootPart.Position, ClosestPlayer.Character.HumanoidRootPart.Position - Vector3.new(0, 20, 0))
+                        LP.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -1.7)
+                        BiteRemote:FireServer('heavy', ClosestPlayer.Character.Humanoid)
+                        game:GetService('RunService').Heartbeat:Wait()
+                    end
+                end
+
+                SettingsTable.PlayerFarm.TargetLocked = false
+            end
+        end
+    elseif SettingsTable.PlayerFarm.Enabled == false then
+        task.wait()
+        SettingsTable.PlayerFarm.TargetLocked = false
+    end
+end)
+
+FarmTab_PlayerFarm:CreateToggle('Ignore Carpenter Ants', false, function(val)
+	SettingsTable.PlayerFarm.IgnoreCarp = val
+end)
+
+FarmTab_PlayerFarm:CreateToggle('Ignore Fire Ants', false, function(val)
+	SettingsTable.PlayerFarm.IgnoreFire = val
+end)
+
+FarmTab_PlayerFarm:CreateToggle('Ignore Yellow Crazy Ants', false, function(val)
+	SettingsTable.PlayerFarm.IgnoreYCA = val
+end)
+
+FarmTab_PlayerFarm:CreateToggle('Ignore Spiders', false, function(val)
+	SettingsTable.PlayerFarm.IgnoreSpider = val
+end)
+
+FarmTab_PlayerFarm:CreateToggle('Ignore Queens', true, function(val)
+	SettingsTable.PlayerFarm.IgnoreQueens = val
+end)
+
+FarmTab_PlayerFarm:CreateToggle('Ignore Larvaes', false, function(val)
+	SettingsTable.PlayerFarm.IgnoreLarvaes = val
+end)
+
+--// COMBAT TAB
+CombatTab_Cheats:CreateToggle('KillAura', false, function(val)
+	SettingsTable.KillAura = val
+end)
+
+--// VISUAL TAB
+VisualTab_ESP:CreateToggle('Carpenter Ant ESP', false, function(val)
+	SettingsTable.CarpenterAntESP = val
+end)
+
+VisualTab_ESP:CreateToggle('Fire Ant ESP', false, function(val)
+	SettingsTable.FireAntESP = val
+end)
+
+VisualTab_ESP:CreateToggle('Yellow Crazy Ant ESP', false, function(val)
+	SettingsTable.YCAntESP = val
+end)
+
+VisualTab_ESP:CreateToggle('Spider ESP', false, function(val)
+	SettingsTable.SpiderESP = val
+end)
+
+VisualTab_ClientMods:CreateToggle('Fullbright', false, function(val)
+    game:GetService('Lighting').GlobalShadows = not val
+end)
+
+VisualTab_ClientMods:CreateToggle('No Sun Rays', false, function(val)
+	game:GetService('Lighting').SunRays.Enabled = not val
+end)
+
+VisualTab_ClientMods:CreateToggle('Discord Light Mode', false, function(val)
+    if val == true then
+        game:GetService('Lighting').ExposureCompensation = 5
+    elseif val == false then
+        game:GetService('Lighting').ExposureCompensation = 1.1
+    end
+end)
+
+VisualTab_ClientMods:CreateToggle('Visible Chat', false, function(val)
+	if val == true then
+        LP.PlayerGui.Chat.Frame.ChatChannelParentFrame.Visible = true
+        LP.PlayerGui.Chat.Frame.ChatChannelParentFrame.Size = UDim2.new(1, 0, 1, 100)
+        LP.PlayerGui.Chat.Frame.ChatBarParentFrame.Position = UDim2.new(0, 0, 1.5, 0)
+    elseif val == false then
+        LP.PlayerGui.Chat.Frame.ChatChannelParentFrame.Visible = false
+        LP.PlayerGui.Chat.Frame.ChatBarParentFrame.Position = UDim2.new(0, 0, 0, 0)
+    end
+end)
+
+VisualTab_ClientMods:CreateToggle('Remove Ant Corpses', true, function(val)
+	SettingsTable.RemoveAntCorpses = val
+end)
+
+
+--// SETTINGS TAB
+local UIBind = SettingsTab_UI:CreateToggle('UI Toggle', true, function(val)
+	Window:Toggle(val)
+end)
+
+UIBind:CreateKeybind(tostring(Config.Keybind):gsub('Enum.KeyCode.', ''), function(key)
+	Config.Keybind = Enum.KeyCode[key]
+end)
+
+SettingsTab_Other:CreateToggle('Leave On Mod Join', false, function(val)
+	SettingsTable.LeaveOnModJoin = val
+end)
+
+--// END
+game:GetService('RunService').RenderStepped:Connect(function()
+
+    -- Updating Labels
+    CarpQueenAmount:UpdateText('Queens: '..#workspace.Ant['Carpenter Ant'].Queen:GetChildren())
+    CarpAlateAmount:UpdateText('Alates: '..#workspace.Ant['Carpenter Ant'].Alate:GetChildren())
+    CarpSMAmount:UpdateText('Super Majors: '..#workspace.Ant['Carpenter Ant']['Super Major']:GetChildren())
+    CarpMajorAmount:UpdateText('Majors: '..#workspace.Ant['Carpenter Ant'].Major:GetChildren())
+    CarpWorkerAmount:UpdateText('Workers: '..#workspace.Ant['Carpenter Ant'].Worker:GetChildren())
+    CarpLarvaeAmount:UpdateText('Larvae: '..#workspace.Ant['Carpenter Ant'].Larvae:GetChildren())
+    CarpEggAmount:UpdateText('Eggs: '..#workspace.Ant['Carpenter Ant'].Eggs:GetChildren())
+    
+    FireQueenAmount:UpdateText('Queens: '..#workspace.Ant['Fire Ant'].Queen:GetChildren())
+    FireAlateAmount:UpdateText('Alates: '..#workspace.Ant['Fire Ant'].Alate:GetChildren())
+    FireSoldierAmount:UpdateText('Soldiers: '..#workspace.Ant['Fire Ant'].Soldier:GetChildren())
+    FireWorkerAmount:UpdateText('Workers: '..#workspace.Ant['Fire Ant'].Worker:GetChildren())
+    FireLarvaeAmount:UpdateText('Larvae: '..#workspace.Ant['Fire Ant'].Larvae:GetChildren())
+    FireEggAmount:UpdateText('Eggs: '..#workspace.Ant['Fire Ant'].Eggs:GetChildren())
+
+    YCQueenAmount:UpdateText('Queens: '..#workspace.Ant['Yellow Crazy Ant'].Queen:GetChildren())
+    YCAlateAmount:UpdateText('Alates: '..#workspace.Ant['Yellow Crazy Ant'].Alate:GetChildren())
+    YCSoldierAmount:UpdateText('Soldiers: '..#workspace.Ant['Yellow Crazy Ant'].Soldier:GetChildren())
+    YCWorkerAmount:UpdateText('Workers: '..#workspace.Ant['Yellow Crazy Ant'].Worker:GetChildren())
+    YCLarvaeAmount:UpdateText('Larvae: '..#workspace.Ant['Yellow Crazy Ant'].Larvae:GetChildren())
+    YCEggAmount:UpdateText('Eggs: '..#workspace.Ant['Yellow Crazy Ant'].Eggs:GetChildren())
+
+    BroodMotherAmount:UpdateText('BroodMothers: '..#workspace.Special.BroodMother.BroodMother:GetChildren())
+    SpiderAmount:UpdateText('Spiders: '..#workspace.Special.Spider.Spider:GetChildren())
+    SpiderlingAmount:UpdateText('Spiderlings: '..#workspace.Special.Spiderling.Spiderling:GetChildren())
+
+end)
